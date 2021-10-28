@@ -1,7 +1,11 @@
 # Spring-Boot
+
 note目录下是spring boot学习笔记
+
 demo目录下是spring boot的一些demo
+
 大神github：https://github.com/lenve/javaboy-code-samples
+
 ## 目录
 - **note**
     - [spring boot入门](#./note/spring_boot入门/spring_boot入门.md)
