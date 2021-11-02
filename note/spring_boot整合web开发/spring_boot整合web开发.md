@@ -592,3 +592,251 @@ public class HelloControllor {
 启动项目，访问/hello2接口，观察控制台输出
 
 ### 启动系统任务
+
+#### CommandLineRunner
+
+spring boot项目在启动时会遍历所有的CommandLineRunner并调用其中的run方法，如果系统有多个CommandLineRunner的实现类，可以使用过@Order对这些实现类的调用顺序进行排序。
+
+在一个spring boot web项目中添加两个CommandLineRunner，如下：
+MyCommandLineRunner1.java
+```java
+@Component
+@Order(1)
+public class MyCommandLineRunner1 implements CommandLineRunner {
+    @Override
+    public void run(String... args) throws Exception {
+        System.out.println("Runner1>>>"+ Arrays.toString(args));
+    }
+}
+```
+MyCommandLineRunner2.java
+```java
+@Component
+@Order(1)
+public class MyCommandLineRunner2 implements CommandLineRunner {
+    @Override
+    public void run(String... args) throws Exception {
+        System.out.println("Runner2>>>"+ Arrays.toString(args));
+    }
+}
+```
+启动项目时，配置传入的参数，InteLLJ idea为例，配置方式如下：
+
+1. 点击编辑启动配置
+
+![](img/22.png)
+
+2. 再打开的页面中编辑program arguments，如果有多个参数，参数之间使用空格隔开。
+
+![](img/23.png)
+
+3. 启动项目，启动日志打印如下：
+
+![](img/24.png)
+
+#### ApplicationRunner
+
+ApplicationRunner和CommandLineRunner的用法基本一致，主要区别在run方法的参数上。
+
+在一个spring boot web项目中添加两个ApplicationRunner，如下：
+
+```java
+@Component
+@Order(1)
+public class MyApplicationRunner1 implements ApplicationRunner {
+    @Override
+    public void run(ApplicationArguments args) throws Exception {
+        List<String> nonOptionArgs = args.getNonOptionArgs();
+        System.out.println("1-nonOptionArgs>>>" + nonOptionArgs);
+        Set<String> optionNames = args.getOptionNames();
+        for (String optionName : optionNames) {
+            System.out.println("1-key:" + optionName + ";value:" +
+                    args.getOptionValues(optionName));
+        }
+    }
+}
+```
+```java
+@Component
+@Order(2)
+public class MyApplicationRunner2 implements ApplicationRunner {
+    @Override
+    public void run(ApplicationArguments args) throws Exception {
+        List<String> nonOptionArgs = args.getNonOptionArgs();
+        System.out.println("2-nonOptionArgs>>>" + nonOptionArgs);
+        Set<String> optionNames = args.getOptionNames();
+        for (String optionName : optionNames) {
+            System.out.println("2-key:" + optionName + ";value:" +
+                    args.getOptionValues(optionName));
+        }
+    }
+}
+```
+- @Order注解依然是用来排序
+- CommandLineRunner中的run方法是String数组为参数，而这里的run方法是一个ApplicationArguments对象，如果想从ApplicationArguments对象中获取入口类中main方法接受的参数，调用ApplicationArguments中的getNonOptionArgs方法即可。
+
+之后运行`mvn package`命令对项目进行打包。
+```
+mvn package
+```
+
+然后进入到打包目录中，运行命令启动项目：
+```
+java -jar  --name=Michael --age=99 谭警官 二仙桥大爷
+```
+![](img/25.png)
+
+#### 整合Servlet、Filter、Listener
+
+一般情况下，在使用spring、spring MVC框架之后，基本就告别了Servlet、Filter、Listener，有些时候在整合第三方框架的时候需要使用servlet，例如整合某报表插件。
+
+在spring boot web中添加如下三个组件：
+```java
+@WebServlet("/my")
+public class MyServlet extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp){
+        doPost(req,resp);
+    }
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp){
+        System.out.println("name>>>"+req.getParameter("name"));
+    }
+}
+```
+```java
+@WebFilter("/*")
+public class MyFiter implements Filter {
+    @Override
+    public void init(FilterConfig filterConfig){
+        System.out.println("MyFilter>>>init");
+    }
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+        System.out.println("MyFilter>>>doFilter");
+        try {
+            chain.doFilter(request,response);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    @Override
+    public void destroy() {
+        System.out.println("MyFilter>>>destroy");
+    }
+}
+```
+```java
+@WebListener
+public class MyListener implements ServletRequestListener {
+    @Override
+    public void requestDestroyed(ServletRequestEvent sre) {
+        System.out.println("MyListener>>>requestDestroyed");
+    }
+    @Override
+    public void requestInitialized(ServletRequestEvent sre) {
+        System.out.println("MyListener>>>requestInitialized");
+    }
+}
+```
+在项目入口添加@ServletComponentScan注解，实现对servlet、fiter、listener的扫描。
+
+启动项目，浏览器中输入`http://localhost:8080/my?name=Michael`,可以看到日志。
+![](img/26.png)
+
+#### 路径映射
+
+有些页面需要在控制器中加载数据，然后渲染，才能现实出来，还有一些页面不需要家在数据，只是完成简单的跳转，对于这种页面，可以直接配置路径映射，提高访问速度。
+
+#### 配置AOP
+
+##### AOP是什么
+
+假设公司有一个人力管理资源系统已经上线，但是系统运行不稳定，为了检测出到底是哪一个环节出问题，开发者想监控每一个方法的执行时间，再根据这些执行时间来判断问题所在。问题的关键点在于系统已经运行，如果能在系统运行的过程中添加动态代码，就能大大提高工作效率，节省时间资源。
+
+这种在系统运行时添加动态代码的方式称为，面向切面编程（AOP）
+
+##### AOP基本概念
+
+- Jionpoint（连接点）：类里面可以被增强的方法即为连接点，比如想修改那个方法中的功能，那么该方法就是一个连接点
+- Pointcut（切入点）：对Jionpoint进行拦截的定义即为切入点。
+- Advice（通知）：拦截到Jionpoint之后最重要的事情就是通知。通知分为前置通知、后置通知、异常通知、最终通知、环绕通知。
+- Aspect（切面）：Pointcut和Advice的结合
+- Target（目标）：要增强的类称为target
+
+##### spring boot支持
+
+spring boot在spring基础上对AOP的配置提供了自动化配置解决方案spring-boot-starter-aop。
+
+首先在spring boot web项目中引入spring-boot-starter-aop依赖：
+```xml
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+```
+
+接下来创建切面代码如下：
+```java
+@Component
+@Aspect
+public class LogAspect {
+    @Pointcut("execution(* org.sang.aop.service.*.*(..))")
+    public void pc1() {
+    }
+    @Before(value = "pc1()")
+    public void before(JoinPoint jp) {
+        String name = jp.getSignature().getName();
+        System.out.println(name + "方法开始执行...");
+    }
+    @After(value = "pc1()")
+    public void after(JoinPoint jp) {
+        String name = jp.getSignature().getName();
+        System.out.println(name + "方法执行结束...");
+    }
+    @AfterReturning(value = "pc1()", returning = "result")
+    public void afterReturning(JoinPoint jp, Object result) {
+        String name = jp.getSignature().getName();
+        System.out.println(name + "方法返回值为：" + result);
+    }
+    @AfterThrowing(value = "pc1()",throwing = "e")
+    public void afterThrowing(JoinPoint jp,Exception e) {
+        String name = jp.getSignature().getName();
+        System.out.println(name+"方法抛异常了，异常是："+e.getMessage());
+    }
+    @Around("pc1()")
+    public Object around(ProceedingJoinPoint pjp) throws Throwable {
+        return pjp.proceed();
+    }
+}
+```
+- @Aspect注解表明这是一个切面类
+- @Pointcut切入点定义，"execution(* org.sang.aop.service.*.*(..))"第一个`*`表示方法返回任意值，第二个`*`表示service包下的任意类，第三个`*`表示类中的任意方法，`..`表示方法参数任意
+- @Before前置通知，该方法在目标方法执行之前执行，通过joinpoint可以获取目标方法的方法名、参数等信息
+- @After，后置通知
+- @AfterReturning注解，表示这是一个返回通知，该方法中可以获取目标方法的返回值。
+- @AfterThrowing表示一个异常通知
+- @Around表示一个环绕通知，最为强大
+
+配置完成后在controller中创建接口
+```java
+@RestController
+public class UserController {
+    @Autowired
+    UserService userService;
+    @GetMapping("/getUserById")
+    public String getUserById(Integer id) {
+        return userService.getUserById(id);
+    }
+    @GetMapping("/deleteUserById")
+    public void deleteUserById(Integer id) {
+        userService.deleteUserById(id);
+    }
+}
+```
+调用UserService中的两个方法，即可看到LogAspect中的代码动态的嵌入到目标方法中执行了
+
+![](img/27.md)
+
+
+
