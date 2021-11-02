@@ -686,7 +686,7 @@ java -jar  --name=Michael --age=99 谭警官 二仙桥大爷
 ```
 ![](img/25.png)
 
-#### 整合Servlet、Filter、Listener
+### 整合Servlet、Filter、Listener
 
 一般情况下，在使用spring、spring MVC框架之后，基本就告别了Servlet、Filter、Listener，有些时候在整合第三方框架的时候需要使用servlet，例如整合某报表插件。
 
@@ -744,19 +744,19 @@ public class MyListener implements ServletRequestListener {
 启动项目，浏览器中输入`http://localhost:8080/my?name=Michael`,可以看到日志。
 ![](img/26.png)
 
-#### 路径映射
+### 路径映射
 
 有些页面需要在控制器中加载数据，然后渲染，才能现实出来，还有一些页面不需要家在数据，只是完成简单的跳转，对于这种页面，可以直接配置路径映射，提高访问速度。
 
-#### 配置AOP
+### 配置AOP
 
-##### AOP是什么
+#### AOP是什么
 
 假设公司有一个人力管理资源系统已经上线，但是系统运行不稳定，为了检测出到底是哪一个环节出问题，开发者想监控每一个方法的执行时间，再根据这些执行时间来判断问题所在。问题的关键点在于系统已经运行，如果能在系统运行的过程中添加动态代码，就能大大提高工作效率，节省时间资源。
 
 这种在系统运行时添加动态代码的方式称为，面向切面编程（AOP）
 
-##### AOP基本概念
+#### AOP基本概念
 
 - Jionpoint（连接点）：类里面可以被增强的方法即为连接点，比如想修改那个方法中的功能，那么该方法就是一个连接点
 - Pointcut（切入点）：对Jionpoint进行拦截的定义即为切入点。
@@ -764,7 +764,7 @@ public class MyListener implements ServletRequestListener {
 - Aspect（切面）：Pointcut和Advice的结合
 - Target（目标）：要增强的类称为target
 
-##### spring boot支持
+#### spring boot支持
 
 spring boot在spring基础上对AOP的配置提供了自动化配置解决方案spring-boot-starter-aop。
 
@@ -838,5 +838,37 @@ public class UserController {
 
 ![](img/27.md)
 
+### 其他
 
+#### 自定义欢迎页
 
+在resources/template下定义index.html，然后再controller中定义：
+```java
+@RequestMapping("/index")
+public String hello(){
+    return "index"
+}
+```
+之后启动项目，浏览器访问http://localhost:8080/就可以看到自定义的欢迎页了。
+
+#### 自定义favion
+
+favion.ico是浏览器左上角的图标。可以放在静态资源路径下或者是类路径下，优先级递减。
+
+可以使用在线转换网站https://jinacovert.com/cn/convert-to-ico.php将一张图片转换成.ico图片，转换成功后，将文件重命名为favicon.ico，放到静态资源路径下。
+
+启动项目，浏览器访问，就可以看到.ico图标了
+
+#### 除去某个自动配置
+
+如果不想使用某个自动化配置，按如下方式除去相关配置即可：
+```java
+@SpringBootApplication
+@EnableAutoConfiguration(exclude = {ErrorMvcAutoConfiguration.class})
+public class OtherApplication {
+	public static void main(String[] args) {
+		SpringApplication.run(OtherApplication.class, args);
+	}
+}
+```
+@EnableAutoConfiguration中使用exclude属性除去error的自动化配置类，这时即使在静态资源路径下创建4....html、5....html，在访问出错时就不会跳转了
