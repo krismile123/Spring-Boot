@@ -9,6 +9,13 @@ demo目录下是spring boot的一些demo
 ## 目录
 - **note**
     - [spring boot入门](./note/spring_boot入门/spring_boot入门.md)
+        - [spring boot简介]()
+        - [spring boot程序]()
+            - [创建maven工程]()
+            - [项目构建]()
+            - [项目启动]()
+        - [简便创建spring boot]
+            - [IntelliJ IDEA 创建]()
     - [spring boot基础配置](./note/spring_boot基础配置/spring_boot基础配置.md)
     - [spring boot整合视图层技术](./note/spring_boot整合视图层技术/spring_boot整合视图层技术.md)
     - [spring boot整合web开发](./note/spring_boot整合web开发/spring_boot整合web开发.md)
