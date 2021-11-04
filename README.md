@@ -65,8 +65,10 @@ demo目录下是spring boot的一些demo
             - 除去某个自动配置
     - [spring boot整合持久层技术](./note/spring_boot整合持久层技术/spring_boot整合持久层技术.md)
         - 整合JdbcTemplate
+        - 整合mybatis
 - **demo**
     - [aop](./demo/aop)
     - [commandlinerunner](./demo/commandlinerunner)
     - [servlet_filter_listener](./demo/servlet_filter_listener)
     - [JdbcTemplate](./demo/JdbcTemplate)
+    - [mybatis](./demo/mybatis)
