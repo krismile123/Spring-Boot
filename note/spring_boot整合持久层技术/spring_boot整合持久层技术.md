@@ -194,7 +194,7 @@ public class BookController {
 
 ![](img/4.png)
 
-## 整合mybatsi
+## 整合mybatis
 
 mybatis是一款优秀的持久层框架，mybatis提供了一套开箱即用的自动化配置方案，可以做到mybatis开箱即用。
 
@@ -272,7 +272,7 @@ public class Book {
 application.properties
 ```xml
 spring.datasource.type=com.alibaba.druid.pool.DruidDataSource
-spring.datasource.url=jdbc:mysql://127.0.0.1:3306/JdbcTemplate
+spring.datasource.url=jdbc:mysql://127.0.0.1:3306/mybatis
 spring.datasource.username=root
 spring.datasource.password=root
 ```
