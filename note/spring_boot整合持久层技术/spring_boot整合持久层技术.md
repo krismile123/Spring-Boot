@@ -394,3 +394,424 @@ public class BookController {
 
 ![](img/6.png)
 
+## 整合spring data JPA
+
+JPA(java peisistence API)和spring data是两个范畴的概念
+
+hibernante是一个ORM框架，JPA则是一种ORM框架规范，JPA和hibernante就像JDBC和JDBC驱动的关系。
+
+spring data是spring的一个子项目，致力于简化数据库的访问，旨在减少数据库访问层的代码量。
+
+spring boot整合spring data JPA步骤如下：
+
+**1.创建数据库**
+
+创建数据库jpa，不用创建表
+
+**2.创建spring boot项目**
+
+创建spring boot项目，添加mysql和spring data JPA的依赖：
+
+```xml
+<dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid</artifactId>
+            <version>1.1.9</version>
+        </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+```
+
+**3.数据库配置**
+
+在application.properties中配置数据库基本信息以及jpa相关配置。
+
+```properties
+//数据库基本配置
+spring.datasource.type=com.alibaba.druid.pool.DruidDataSource
+spring.datasource.url=jdbc:mysql://127.0.0.1:3306/jpa
+spring.datasource.username=root
+spring.datasource.password=root
+
+//jpa相关配置
+
+//是否在控制台打印jpa执行过程中生成的SQL
+spring.jpa.show-sql=true
+
+//jpa对应的数据库是mysql
+spring.jpa.database=mysql
+
+//在项目启动时根据实体类更新数据库中的表
+spring.jpa.hibernate.ddl-auto=update
+
+//使用的数据库方言是MySQL57Dialect
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL57Dialect
+```
+
+**4.创建实体类**
+
+创建Book实体类：
+
+```java
+import javax.persistence.*;
+@Entity(name = "t_book")
+public class Book {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+    @Column(name = "book_name",nullable = false)
+    private String name;
+    private String author;
+    private Float price;
+    @Transient
+    private String description;
+    //省略getter/setter
+
+    @Override
+    public String toString() {
+        return "Book{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", author='" + author + '\'' +
+                ", price=" + price +
+                ", description='" + description + '\'' +
+                '}';
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(String author) {
+        this.author = author;
+    }
+
+    public Float getPrice() {
+        return price;
+    }
+
+    public void setPrice(Float price) {
+        this.price = price;
+    }
+}
+```
+
+- @Entity表示该类是一个实体类，在项目启动的时候会根据该类自动生成一张表，表名为name的值。
+- @Id表示主键，@GeneratedValue表示主键自动生成，strategy表示主键生成的策略
+- @Column注解可以定制生成字段的属性，name是对应数据表中字段的名称，nullable表示该字段非空
+- @Transient生成数据库中的表时，该属性被忽略即不生成对应的字段
+
+**5.创建BookDao接口**
+
+创建BookDao接口，继承JpaRepository：
+
+```java
+public interface BookDao extends JpaRepository<Book,Integer> {
+    List<Book> getBooksByAuthorStartingWith(String author);
+    List<Book> getBooksByPriceGreaterThan(Float price);
+    @Query(value = "select * from t_book where id=(select max(id) from t_book)",nativeQuery = true)
+    Book getMaxIdBook();
+    @Query("select b from t_book b where b.id>:id and b.author=:author")
+    List<Book> getBookByIdAndAuthor(@Param("author") String author, @Param("id") Integer id);
+    @Query("select b from t_book b where b.id<?2 and b.name like %?1%")
+    List<Book> getBooksByIdAndName(String name, Integer id);
+}
+```
+
+- 自定义BookDao继承JpaRepository，JpaRepository提供了一些基本的数据操作方法，有基本的增删改查、分页查询、排序查询等
+
+```
+这里省略了一堆知识
+```
+
+**6.创建service**
+
+创建BookService：
+
+```java
+@Service
+public class BookService {
+    @Autowired
+    BookDao bookDao;
+    // save将对象数据保存到数据库
+    public void addBook(Book book) {
+        bookDao.save(book);
+    }
+    // 分页查询
+    public Page<Book> getBookByPage(Pageable pageable) {
+        return bookDao.findAll(pageable);
+    }
+    public List<Book> getBooksByAuthorStartingWith(String author){
+        return bookDao.getBooksByAuthorStartingWith(author);
+    }
+    public List<Book> getBooksByPriceGreaterThan(Float price){
+        return bookDao.getBooksByPriceGreaterThan(price);
+    }
+    public Book getMaxIdBook(){
+        return bookDao.getMaxIdBook();
+    }
+    public List<Book> getBookByIdAndAuthor(String author, Integer id){
+        return bookDao.getBookByIdAndAuthor(author, id);
+    }
+    public List<Book> getBooksByIdAndName(String name, Integer id){
+        return bookDao.getBooksByIdAndName(name, id);
+    }
+}
+```
+
+**7.创建BookController**
+
+```java
+@RestController
+public class BookController {
+    @Autowired
+    BookService bookService;
+    @GetMapping("/findAll")
+    public void findAll() {
+        PageRequest pageable = PageRequest.of(2, 3);
+        Page<Book> page = bookService.getBookByPage(pageable);
+        System.out.println("总页数:"+page.getTotalPages());
+        System.out.println("总记录数:"+page.getTotalElements());
+        System.out.println("查询结果:"+page.getContent());
+        System.out.println("当前页数:"+(page.getNumber()+1));
+        System.out.println("当前页记录数:"+page.getNumberOfElements());
+        System.out.println("每页记录数:"+page.getSize());
+    }
+    @GetMapping("/search")
+    public void search() {
+        List<Book> bs1 = bookService.getBookByIdAndAuthor("鲁迅", 7);
+        List<Book> bs2 = bookService.getBooksByAuthorStartingWith("吴");
+        List<Book> bs3 = bookService.getBooksByIdAndName("西", 8);
+        List<Book> bs4 = bookService.getBooksByPriceGreaterThan(30F);
+        Book b = bookService.getMaxIdBook();
+        System.out.println("bs1:"+bs1);
+        System.out.println("bs2:"+bs2);
+        System.out.println("bs3:"+bs3);
+        System.out.println("bs4:"+bs4);
+        System.out.println("b:"+b);
+    }
+    @GetMapping("/save")
+    public void save() {
+        Book book = new Book();
+        book.setAuthor("鲁迅");
+        book.setName("呐喊");
+        book.setPrice(23F);
+        bookService.addBook(book);
+    }
+}
+```
+
+**8.测试**
+
+1. 创建测试数据进行测试
+
+访问http://localhost:8080/findAll
+
+![](img/7.png)
+
+```
+没有弄测试数据！！！
+```
+
+## 多数据源
+
+多数据源就是一个javaEE项目中采用了不同的数据库实例中的多个库，或者是同一个数据库实例中多个不同的库
+
+### JdbcTemplate多数据源
+
+**1.创建数据库**
+
+创建两个数据库，并且创建两个book表
+
+![](img/8.png)
+
+![](img/9.png)
+
+**2.创建项目**
+
+创建spring boot项目，添加依赖：
+
+```xml
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid-spring-boot-starter</artifactId>
+            <version>1.1.10</version>
+        </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+```
+
+**3.配置数据库连接**
+
+```properties
+# 数据源1
+spring.datasource.one.type=com.alibaba.druid.pool.DruidDataSource
+spring.datasource.one.username=root
+spring.datasource.one.password=root
+spring.datasource.one.url=jdbc:mysql://127.0.0.1:3306/jdbctemplate1
+# 数据源2
+spring.datasource.two.type=com.alibaba.druid.pool.DruidDataSource
+spring.datasource.two.username=root
+spring.datasource.two.password=root
+spring.datasource.two.url=jdbc:mysql://127.0.0.1:3306/jdbctemplate2
+```
+
+**4.配置数据源**
+
+
+DataSourceConfig.java,根据application.properties中的配置生成两个数据源
+```java
+@Configuration
+public class DataSourceConfig {
+    @Bean
+    @ConfigurationProperties("spring.datasource.one")
+    DataSource dsOne() {
+        return DruidDataSourceBuilder.create().build();
+    }
+    @Bean
+    @ConfigurationProperties("spring.datasource.two")
+    DataSource dsTwo() {
+        return DruidDataSourceBuilder.create().build();
+    }
+}
+```
+
+- @ConfigurationProperties注解表示使用不同前缀的配置文件来创建不同的datasource
+
+**5.配置JdbcTemplate**
+
+JdbcTemplateConfig.java
+```java
+@Configuration
+public class JdbcTemplateConfig {
+    @Bean
+    JdbcTemplate jdbcTemplateOne(@Qualifier("dsOne") DataSource dataSource) {
+        return new JdbcTemplate(dataSource);
+    }
+    @Bean
+    JdbcTemplate jdbcTemplateTwo(@Qualifier("dsTwo") DataSource dataSource) {
+        return new JdbcTemplate(dataSource);
+    }
+}
+```
+
+- @Qualifier注解表示查找不同名称的datasource实例植入进来
+
+**6.创建book、bookcontroller**
+
+Book.java
+```java
+public class Book {
+    private Integer id;
+    private String name;
+    private String author;
+
+    @Override
+    public String toString() {
+        return "Book{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", author='" + author + '\'' +
+                '}';
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(String author) {
+        this.author = author;
+    }
+}
+```
+
+BookController.java
+```java
+@RestController
+public class BookController {
+    @Resource(name = "jdbcTemplateOne")
+//    @Autowired
+    JdbcTemplate jdbcTemplate;
+    @Autowired
+    @Qualifier("jdbcTemplateTwo")
+    JdbcTemplate jdbcTemplateTwo;
+    @GetMapping("/test1")
+    public void test1() {
+        List<Book> books1 = jdbcTemplate.query("select * from book",
+                new BeanPropertyRowMapper<>(Book.class));
+        List<Book> books2 = jdbcTemplateTwo.query("select * from book",
+                new BeanPropertyRowMapper<>(Book.class));
+        System.out.println("books1:"+books1);
+        System.out.println("books2:"+books2);
+    }
+}
+```
+
+**7.测试**
+
+浏览器输入http://localhost:8080/test1
+
+![](img/10.png)
+

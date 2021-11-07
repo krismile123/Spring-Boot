@@ -66,9 +66,14 @@ demo目录下是spring boot的一些demo
     - [spring boot整合持久层技术](./note/spring_boot整合持久层技术/spring_boot整合持久层技术.md)
         - 整合JdbcTemplate
         - 整合mybatis
+        - 整合spring data JPA
+        - 多数据源
+            - mutil-jdbctemplate
 - **demo**
     - [aop](./demo/aop)
     - [commandlinerunner](./demo/commandlinerunner)
     - [servlet_filter_listener](./demo/servlet_filter_listener)
     - [JdbcTemplate](./demo/JdbcTemplate)
     - [mybatis](./demo/mybatis)
+    - [spring-data-JPA](./demo/spring-data-JPA)
+    - [mutiljdbc](./demo/jdbctemplates)
