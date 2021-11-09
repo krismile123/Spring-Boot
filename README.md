@@ -69,6 +69,7 @@ demo目录下是spring boot的一些demo
         - 整合spring data JPA
         - 多数据源
             - mutil-jdbctemplate
+            - mutilmybatis
 - **demo**
     - [aop](./demo/aop)
     - [commandlinerunner](./demo/commandlinerunner)
@@ -77,3 +78,4 @@ demo目录下是spring boot的一些demo
     - [mybatis](./demo/mybatis)
     - [spring-data-JPA](./demo/spring-data-JPA)
     - [mutiljdbc](./demo/jdbctemplates)
+    - [mutilmybatis](./demo/mutilbatis1)

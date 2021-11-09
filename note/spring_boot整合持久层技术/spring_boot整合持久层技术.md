@@ -815,3 +815,170 @@ public class BookController {
 
 ![](img/10.png)
 
+## mybatis多数据源
+
+**1.创建数据库**
+
+![](img/12.png)
+
+![](img/13.png)
+
+application.properties
+```properties
+spring.datasource.one.type=com.alibaba.druid.pool.DruidDataSource
+spring.datasource.one.username=root
+spring.datasource.one.password=root
+spring.datasource.one.url=jdbc:mysql://127.0.0.1:3306/mybatis1
+
+spring.datasource.two.type=com.alibaba.druid.pool.DruidDataSource
+spring.datasource.two.username=root
+spring.datasource.two.password=root
+spring.datasource.two.url=jdbc:mysql://127.0.0.1:3306/mybatis2
+```
+
+**2.创建项目**
+
+创建spring boot项目，添加依赖
+
+```xml
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mybatis.spring.boot</groupId>
+            <artifactId>mybatis-spring-boot-starter</artifactId>
+            <version>1.3.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid-spring-boot-starter</artifactId>
+            <version>1.1.10</version>
+        </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+```
+
+```xml
+        <resources>
+            <resource>
+                <directory>src/main/java</directory>
+                <includes>
+                    <include>**/*.xml</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/java</directory>
+            </resource>
+        </resources>
+```
+
+**3.创建mybatis配置**
+
+提供两个DataSource
+```java
+// DataSourceConfig.java
+@Configuration
+public class DataSourceConfig {
+    @Bean
+    @ConfigurationProperties("spring.datasource.one")
+    DataSource dsOne() {
+        return DruidDataSourceBuilder.create().build();
+    }
+    @Bean
+    @ConfigurationProperties("spring.datasource.two")
+    DataSource dsTwo() {
+        return DruidDataSourceBuilder.create().build();
+    }
+}
+```
+```java
+// MyBatisConfigOne.java
+@Configuration //指明该类是一个配置类
+@MapperScan(value = "com.example.mutilbatis1.mapper1", sqlSessionFactoryRef = "sqlSessionFactoryBean1") //配置类中需要扫描的包com.example.mutilbatis1.mapper1
+public class MyBatisConfigOne {
+    @Autowired
+    @Qualifier("dsOne")
+    DataSource dsOne;
+
+    @Bean
+    SqlSessionFactory sqlSessionFactoryBean1() throws Exception {
+        SqlSessionFactoryBean factoryBean = new SqlSessionFactoryBean();
+        factoryBean.setDataSource(dsOne);
+        return factoryBean.getObject();
+    }
+    @Bean
+    SqlSessionTemplate sqlSessionTemplate1() throws Exception {
+        return new SqlSessionTemplate(sqlSessionFactoryBean1());
+    }
+}
+```
+```java
+// MyBatisConfigTwo.java
+@Configuration
+@MapperScan(value = "com.example.mutilbatis1.mapper2", sqlSessionFactoryRef = "sqlSessionFactoryBean2")
+public class MyBatisConfigTwo {
+    @Autowired
+    @Qualifier("dsTwo")
+    DataSource dsTwo;
+    @Bean
+    SqlSessionFactory sqlSessionFactoryBean2() throws Exception {
+        SqlSessionFactoryBean factoryBean = new SqlSessionFactoryBean();
+        factoryBean.setDataSource(dsTwo);
+        return factoryBean.getObject();
+    }
+    @Bean
+    SqlSessionTemplate sqlSessionTemplate2() throws Exception {
+        return new SqlSessionTemplate(sqlSessionFactoryBean2());
+    }
+}
+```
+
+**4.mapper创建**
+```java
+@Component
+public interface BookMapper {
+    List<Book> getAllBooks();
+}
+```
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mutilbatis1.mapper1.BookMapper">
+    <select id="getAllBooks" resultType="com.example.mutilbatis1.model.Book">
+        select * from book;
+    </select>
+</mapper>
+```
+
+mapper2中的配置和mapper1中的配置差不多，参照实例
+
+**5.创建controller**
+```java
+@RestController
+public class BookController {
+    @Autowired
+    BookMapper bookMapper;
+    @Autowired
+    BookMapper2 bookMapper2;
+    @GetMapping("/test1")
+    public void test1() {
+        List<Book> books1 = bookMapper.getAllBooks();
+        List<Book> books2 = bookMapper2.getAllBooks();
+        System.out.println("books1:"+books1);
+        System.out.println("books2:"+books2);
+    }
+}
+```
+
+**6.测试**
+
+浏览器输入localhost:8080/test1
+
+![](img/14.png)
+
