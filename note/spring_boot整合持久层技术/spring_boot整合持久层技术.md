@@ -982,3 +982,231 @@ public class BookController {
 
 ![](img/14.png)
 
+## jpa多数据源
+
+整合Jpa多数据源具体步骤如下：
+
+**1.创建项目**
+
+![](img/15.png)
+
+添加druid依赖：
+
+```xml
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid-spring-boot-starter</artifactId>
+            <version>1.1.10</version>
+        </dependency>
+```
+
+**2.基本配置**
+
+application.properties：
+```properties
+spring.datasource.one.type=com.alibaba.druid.pool.DruidDataSource
+spring.datasource.one.username=root
+spring.datasource.one.password=root
+spring.datasource.one.url=jdbc:mysql://127.0.0.1:3306/jpa1
+
+# 数据源2
+spring.datasource.two.type=com.alibaba.druid.pool.DruidDataSource
+spring.datasource.two.username=root
+spring.datasource.two.password=root
+spring.datasource.two.url=jdbc:mysql://127.0.0.1:3306/jpa2
+
+#jpa配置
+spring.jpa.properties.database=mysql
+spring.jpa.properties.show-sql=true
+spring.jpa.properties.database-platform=mysql
+spring.jpa.properties.hibernate.ddl-auto=update
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL57Dialect
+```
+
+DataSource:
+```java
+@Configuration
+public class DataSourceConfig {
+    @Bean
+    @ConfigurationProperties(prefix = "spring.datasource.one")
+    @Primary
+    DataSource dsOne() {
+        return DruidDataSourceBuilder.create().build();
+    }
+    @Bean
+    @ConfigurationProperties(prefix = "spring.datasource.two")
+    DataSource dsTwo() {
+        return DruidDataSourceBuilder.create().build();
+    }
+}
+```
+
+- @Primary表示当某一个类存在多个实例时，优先使用哪个实例。
+
+**3.多数据源配置**
+
+```java
+@Configuration
+@EnableTransactionManagement
+@EnableJpaRepositories(basePackages = "com.example.mutiljpa.dao1",
+        entityManagerFactoryRef = "entityManagerFactoryBeanOne",
+        transactionManagerRef = "platformTransactionManagerOne")
+public class JpaConfigOne {
+    @Resource(name = "dsOne")
+    DataSource dsOne;
+    @Autowired
+    JpaProperties jpaProperties;
+    @Bean
+    @Primary
+    LocalContainerEntityManagerFactoryBean entityManagerFactoryBeanOne(
+            EntityManagerFactoryBuilder builder) {
+        return builder.dataSource(dsOne)
+                .properties(jpaProperties.getProperties())
+                .packages("com.example.mutiljpa.model")
+                .persistenceUnit("pu1")
+                .build();
+    }
+    @Bean
+    PlatformTransactionManager platformTransactionManagerOne(
+            EntityManagerFactoryBuilder builder) {
+        LocalContainerEntityManagerFactoryBean factoryOne = entityManagerFactoryBeanOne(builder);
+        return new JpaTransactionManager(factoryOne.getObject());
+    }
+}
+```
+
+- 这里注入dsOne，再注入JpaProperties，JpaProperties是系统提供的一个实例，里边的数据就是我们在application.properties中配置的jpa相关的配置。然后我们提供两个Bean，分别是LocalContainerEntityManagerFactoryBean和PlatformTransactionManager事务管理器，不同于MyBatis和JdbcTemplate，在Jpa中，事务一定要配置。在提供LocalContainerEntityManagerFactoryBean的时候，需要指定packages，这里的packages指定的包就是这个数据源对应的实体类所在的位置，另外在这里配置类上通过@EnableJpaRepositories注解指定dao所在的位置，以及LocalContainerEntityManagerFactoryBean和PlatformTransactionManager分别对应的引用的名字。
+
+第二个基本类似
+```java
+@Configuration
+@EnableTransactionManagement
+@EnableJpaRepositories(basePackages = "com.example.mutiljpa.dao2",
+        entityManagerFactoryRef = "entityManagerFactoryBeanTwo",
+        transactionManagerRef = "platformTransactionManagerTwo")
+public class JpaConfigTwo {
+    @Resource(name = "dsTwo")
+    DataSource dsTwo;
+    @Autowired
+    JpaProperties jpaProperties;
+    @Bean
+    LocalContainerEntityManagerFactoryBean entityManagerFactoryBeanTwo(
+            EntityManagerFactoryBuilder builder) {
+        return builder.dataSource(dsTwo)
+                .properties(jpaProperties.getProperties())
+                .packages("com.example.mutiljpa.model")
+                .persistenceUnit("pu2")
+                .build();
+    }
+    @Bean
+    PlatformTransactionManager platformTransactionManagerTwo(
+            EntityManagerFactoryBuilder builder) {
+        LocalContainerEntityManagerFactoryBean factoryTwo = entityManagerFactoryBeanTwo(builder);
+        return new JpaTransactionManager(factoryTwo.getObject());
+    }
+}
+```
+
+在对应位置分别提供相关的实体类和dao即可
+
+```java
+public interface UserDao extends JpaRepository<User,Integer> {
+}
+```
+
+```java
+public interface UserDao2 extends JpaRepository<User,Integer> {
+}
+```
+
+实体类User.java
+```java
+@Entity(name = "t_user")
+public class User {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+    private String name;
+    private String gender;
+    private Integer age;
+    //省略getter/setter
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", gender='" + gender + '\'' +
+                ", age=" + age +
+                '}';
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
+    public Integer getAge() {
+        return age;
+    }
+
+    public void setAge(Integer age) {
+        this.age = age;
+    }
+}
+```
+
+**4.controller**
+
+```java
+@RestController
+public class UserController {
+    @Autowired
+    UserDao userDao;
+    @Autowired
+    UserDao2 userDao2;
+    @GetMapping("/test1")
+    public void test1() {
+        User u1 = new User();
+        u1.setAge(55);
+        u1.setName("鲁迅");
+        u1.setGender("男");
+        userDao.save(u1);
+        User u2 = new User();
+        u2.setAge(80);
+        u2.setName("泰戈尔");
+        u2.setGender("男");
+        userDao2.save(u2);
+    }
+}
+```
+
+**5.测试**
+
+在浏览器输入http://localhost:8080/test1
+
+数据库中t_user中字段更新
+
+![](img/16.png)
+
+
+
