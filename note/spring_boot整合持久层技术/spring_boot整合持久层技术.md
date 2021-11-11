@@ -4,6 +4,8 @@
 
 持久层是javaEE中访问数据库的核心操作，spring boot中对常见的持久层框架都提供了自动化配置。
 
+JdbcTemplate配置简单，使用也简单，但是功能也非常有限，MyBatis则比较灵活，功能也很强大
+
 ## 整合JdbcTemplate
 
 JdbcTemplate是spring提供的一套JDBC框架，利用AOP技术来解决直接使用JDBC时大量重复代码的问题，JdbcTemplate没有mybatis灵活，但是比较方便。spring boot中对JdbcTemplate的使用提供了自动化配置类JdbcTemplateAutoConfiguration
