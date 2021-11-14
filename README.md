@@ -85,4 +85,4 @@
     - [mutilmybatis](./demo/mutilbatis1)
     - [mutiljpa](./demo/mutiljpa)
     - [jpa-restful](./demo/restful)
-    - [mongodb](./demo/mongodb_restful)
+    - [mongodb-restful](./demo/mongodb_restful)
