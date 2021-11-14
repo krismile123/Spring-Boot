@@ -71,6 +71,9 @@
             - jdbctemplate多数据源整合
             - mybatis多数据源整合
             - jpa多数据源整合
+    - [构建restful服务](./note/构建restful服务/构建restful服务.md)
+        - jpa实现rest
+        - mongodb实现rest
 - **demo**
     - [aop](./demo/aop)
     - [commandlinerunner](./demo/commandlinerunner)
@@ -81,3 +84,5 @@
     - [mutiljdbc](./demo/jdbctemplates)
     - [mutilmybatis](./demo/mutilbatis1)
     - [mutiljpa](./demo/mutiljpa)
+    - [jpa-restful](./demo/restful)
+    - [mongodb](./demo/mongodb_restful)
