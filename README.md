@@ -71,6 +71,8 @@
             - [jdbctemplate多数据源整合](./note/spring_boot整合持久层技术/spring_boot整合持久层技术.md/###jdbctemplate多数据源整合)
             - [mybatis多数据源整合](./note/spring_boot整合持久层技术/spring_boot整合持久层技术.md/###mybatis多数据源整合)
             - [jpa多数据源整合](./note/spring_boot整合持久层技术/spring_boot整合持久层技术.md/###jpa多数据源整合)
+    - [spring_boot整合NoSQL](./note/spring_boot整合NoSQL/spring_boot整合NoSQL.md)
+        - [spring boot整合redis](./note/spring_boot整合NoSQL/spring_boot整合NoSQL.md/##springboot整合redis)
     - [构建restful服务](./note/构建restful服务/构建restful服务.md)
         - [jpa实现rest](./note/构建restful服务/构建restful服务.md/#jpa实现rest)
         - [mongodb实现rest](./note/构建restful服务/构建restful服务.md/#mongodb实现rest)
@@ -86,3 +88,4 @@
     - [mutiljpa](./demo/mutiljpa)
     - [jpa-restful](./demo/restful)
     - [mongodb-restful](./demo/mongodb_restful)
+    - [redis](./demo/redis)
