@@ -77,6 +77,8 @@
     - [构建restful服务](./note/构建restful服务/构建restful服务.md)
         - [jpa实现rest](./note/构建restful服务/构建restful服务.md/#jpa实现rest)
         - [mongodb实现rest](./note/构建restful服务/构建restful服务.md/#mongodb实现rest)
+    - [spring boot缓存](./note/spring_boot缓存/spring_boot缓存.md)
+        - [Ehcache 2.x缓存](./note/spring_boot缓存/##Ehcache2.x缓存)
 - **demo**
     - [aop](./demo/aop)
     - [commandlinerunner](./demo/commandlinerunner)
@@ -91,3 +93,4 @@
     - [mongodb-restful](./demo/mongodb_restful)
     - [redis](./demo/redis)
     - [mongodb](./demo/mongodb)
+    - [Ehcache](./demo/ehcache)
