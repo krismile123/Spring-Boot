@@ -339,4 +339,4 @@ public class BookController {
 
 ![](img/5.png)
 
-还可以使用mongoTemplate实现，代码在，controller中的test2接口。
+还可以使用mongoTemplate实现，代码在controller中的test2接口。
