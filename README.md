@@ -79,6 +79,8 @@
         - [mongodb实现rest](./note/构建restful服务/构建restful服务.md/#mongodb实现rest)
     - [spring boot缓存](./note/spring_boot缓存/spring_boot缓存.md)
         - [Ehcache 2.x缓存](./note/spring_boot缓存/##Ehcache2.x缓存)
+    - [安全管理](./note/安全管理/安全管理.md)
+        - [spring boot整合shiro](./note/安全管理/##springboot整合shiro) 
 - **demo**
     - [aop](./demo/aop)
     - [commandlinerunner](./demo/commandlinerunner)
@@ -94,3 +96,5 @@
     - [redis](./demo/redis)
     - [mongodb](./demo/mongodb)
     - [Ehcache](./demo/ehcache)
+    - [shiro-basic](./demo/shiro)
+    - [shiro-static](./demo/shiro-starter)
