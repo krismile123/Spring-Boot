@@ -1,3 +1,5 @@
+[toc]
+---
 # spring boot整合NoSQL
 
 ## spring boot整合redis
