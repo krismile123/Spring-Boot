@@ -97,4 +97,4 @@
     - [mongodb](./demo/mongodb)
     - [Ehcache](./demo/ehcache)
     - [shiro-basic](./demo/shiro)
-    - [shiro-static](./demo/shiro-starter)
+    - [shiro-starter](./demo/shiro-starter)
