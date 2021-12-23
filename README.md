@@ -1,10 +1,14 @@
 # Spring-Boot
 
+---
+
 **note目录下是spring boot学习笔记**
 
 **demo目录下是spring boot的一些demo**
 
 *大神github：https://github.com/lenve/javaboy-code-samples*
+
+---
 
 ## 目录
 - **note**
@@ -98,3 +102,5 @@
     - [Ehcache](./demo/ehcache)
     - [shiro-basic](./demo/shiro)
     - [shiro-starter](./demo/shiro-starter)
+
+---
